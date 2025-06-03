@@ -1,0 +1,251 @@
+import random
+import string
+from datetime import datetime
+
+class SimpleOTPGenerator:
+    """Simple Interactive OTP Generator - No external dependencies"""
+    
+    def __init__(self):
+        self.generated_otps = []
+        self.running = True
+    
+    def display_menu(self):
+        """Display the main menu"""
+        print("\n" + "=" * 50)
+        print("         🔐 OTP GENERATOR 🔐")
+        print("=" * 50)
+        print("1. Generate 6-digit OTP")
+        print("2. Generate Custom Length OTP")
+        print("3. Generate Alphanumeric OTP")
+        print("4. Generate Mixed OTP (with symbols)")
+        print("5. Generate Custom Pattern OTP")
+        print("6. View Last 5 OTPs")
+        print("7. Clear History")
+        print("8. Help")
+        print("9. Exit")
+        print("=" * 50)
+    
+    def get_user_choice(self):
+        """Get and validate user choice"""
+        try:
+            choice = int(input("Enter your choice (1-9): "))
+            if 1 <= choice <= 9:
+                return choice
+            else:
+                print("❌ Please enter a number between 1 and 9!")
+                return None
+        except ValueError:
+            print("❌ Please enter a valid number!")
+            return None
+    
+    def generate_numeric_otp(self, length=6):
+        """Generate numeric OTP using random"""
+        otp = ''.join([str(random.randint(0, 9)) for _ in range(length)])
+        self._log_otp(otp, f"Numeric-{length}digit")
+        return otp
+    
+    def generate_alphanumeric_otp(self, length=8):
+        """Generate alphanumeric OTP"""
+        characters = string.ascii_uppercase + string.digits
+        otp = ''.join([random.choice(characters) for _ in range(length)])
+        self._log_otp(otp, f"Alphanumeric-{length}char")
+        return otp
+    
+    def generate_mixed_otp(self, length=10, include_symbols=True):
+        """Generate mixed OTP"""
+        characters = string.ascii_letters + string.digits
+        if include_symbols:
+            characters += "!@#$%^&*"
+        
+        otp = ''.join([random.choice(characters) for _ in range(length)])
+        otp_type = f"Mixed-{length}char" + ("-symbols" if include_symbols else "")
+        self._log_otp(otp, otp_type)
+        return otp
+    
+    def generate_pattern_otp(self, pattern):
+        """Generate OTP based on pattern"""
+        otp = ""
+        
+        for char in pattern.upper():
+            if char == 'N':
+                otp += str(random.randint(0, 9))
+            elif char == 'A':
+                otp += random.choice(string.ascii_uppercase)
+            elif char == 'L':
+                otp += random.choice(string.ascii_lowercase)
+            elif char == 'S':
+                otp += random.choice("!@#$%^&*")
+            else:
+                otp += char
+        
+        self._log_otp(otp, f"Pattern-{pattern}")
+        return otp
+    
+    def _log_otp(self, otp, otp_type):
+        """Log generated OTP"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        self.generated_otps.append({
+            'otp': otp,
+            'type': otp_type,
+            'time': timestamp
+        })
+    
+    def option_1(self):
+        """Generate standard 6-digit OTP"""
+        print("\n🔢 Generating 6-digit OTP...")
+        otp = self.generate_numeric_otp(6)
+        print(f"✅ Your OTP: {otp}")
+        input("Press Enter to continue...")
+    
+    def option_2(self):
+        """Generate custom length numeric OTP"""
+        print("\n🔢 Custom Length Numeric OTP")
+        try:
+            length = int(input("Enter length (4-20): "))
+            if 4 <= length <= 20:
+                otp = self.generate_numeric_otp(length)
+                print(f"✅ Your {length}-digit OTP: {otp}")
+            else:
+                print("❌ Length must be between 4-20!")
+        except ValueError:
+            print("❌ Invalid input!")
+        input("Press Enter to continue...")
+    
+    def option_3(self):
+        """Generate alphanumeric OTP"""
+        print("\n🔤 Alphanumeric OTP")
+        try:
+            length = input("Enter length (4-20, press Enter for 8): ")
+            length = int(length) if length else 8
+            if 4 <= length <= 20:
+                otp = self.generate_alphanumeric_otp(length)
+                print(f"✅ Your alphanumeric OTP: {otp}")
+            else:
+                print("❌ Length must be between 4-20!")
+        except ValueError:
+            print("❌ Invalid input!")
+        input("Press Enter to continue...")
+    
+    def option_4(self):
+        """Generate mixed OTP"""
+        print("\n🎭 Mixed OTP")
+        try:
+            length = input("Enter length (6-20, press Enter for 10): ")
+            length = int(length) if length else 10
+            if 6 <= length <= 20:
+                symbols = input("Include symbols? (y/n, press Enter for yes): ").lower()
+                include_symbols = symbols != 'n'
+                otp = self.generate_mixed_otp(length, include_symbols)
+                print(f"✅ Your mixed OTP: {otp}")
+            else:
+                print("❌ Length must be between 6-20!")
+        except ValueError:
+            print("❌ Invalid input!")
+        input("Press Enter to continue...")
+    
+    def option_5(self):
+        """Generate pattern OTP"""
+        print("\n🎨 Custom Pattern OTP")
+        print("Use: N=number, A=letter, S=symbol, others=literal")
+        print("Examples: NNNN-NNNN, AAA-NNN, NNAANN")
+        
+        pattern = input("Enter pattern: ").strip()
+        if pattern:
+            otp = self.generate_pattern_otp(pattern)
+            print(f"✅ Your pattern OTP: {otp}")
+        else:
+            print("❌ Pattern cannot be empty!")
+        input("Press Enter to continue...")
+    
+    def option_6(self):
+        """Show recent OTPs"""
+        print("\n📜 Last 5 Generated OTPs")
+        print("-" * 40)
+        if not self.generated_otps:
+            print("No OTPs generated yet!")
+        else:
+            recent = self.generated_otps[-5:]
+            for i, entry in enumerate(recent, 1):
+                print(f"{i}. {entry['otp']} ({entry['type']}) at {entry['time']}")
+        input("Press Enter to continue...")
+    
+    def option_7(self):
+        """Clear history"""
+        if self.generated_otps:
+            confirm = input("Clear all history? (y/n): ").lower()
+            if confirm == 'y':
+                self.generated_otps.clear()
+                print("✅ History cleared!")
+            else:
+                print("❌ Cancelled.")
+        else:
+            print("📝 No history to clear!")
+        input("Press Enter to continue...")
+    
+    def option_8(self):
+        """Show help"""
+        print("\n📖 HELP")
+        print("-" * 30)
+        print("OTP Types:")
+        print("• Numeric: 123456")
+        print("• Alphanumeric: A1B2C3")
+        print("• Mixed: A1@b2#")
+        print("• Pattern: Custom format")
+        print("\nPattern Guide:")
+        print("• N = Number (0-9)")
+        print("• A = Letter (A-Z)")
+        print("• L = Lowercase (a-z)")
+        print("• S = Symbol (!@#$%^&*)")
+        print("• Other chars = Literal")
+        print("\nExamples:")
+        print("• NNNNNN → 123456")
+        print("• AAANNN → ABC123")
+        print("• NN-NN → 12-34")
+        input("Press Enter to continue...")
+    
+    def run(self):
+        """Main program loop"""
+        print("Welcome to Simple OTP Generator!")
+        
+        while self.running:
+            self.display_menu()
+            choice = self.get_user_choice()
+            
+            if choice == 1:
+                self.option_1()
+            elif choice == 2:
+                self.option_2()
+            elif choice == 3:
+                self.option_3()
+            elif choice == 4:
+                self.option_4()
+            elif choice == 5:
+                self.option_5()
+            elif choice == 6:
+                self.option_6()
+            elif choice == 7:
+                self.option_7()
+            elif choice == 8:
+                self.option_8()
+            elif choice == 9:
+                print("\n👋 Thanks for using OTP Generator!")
+                self.running = False
+            elif choice is None:
+                continue
+        
+        print("Goodbye! 🔐")
+
+# Quick functions for direct use
+def quick_otp(length=6):
+    """Quick 6-digit OTP"""
+    return ''.join([str(random.randint(0, 9)) for _ in range(length)])
+
+def quick_alpha_otp(length=8):
+    """Quick alphanumeric OTP"""
+    chars = string.ascii_uppercase + string.digits
+    return ''.join([random.choice(chars) for _ in range(length)])
+
+# Run the interactive generator
+if __name__ == "__main__":
+    generator = SimpleOTPGenerator()
+    generator.run()
